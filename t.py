@@ -281,9 +281,7 @@ def get_values(driver, match_data, odds):
                 
                 break
         
-        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', country_home, country_away, '\t', game_time, '\t', '\t', odds[0], odds[1],
-               '\t', col_N, col_O, col_P, '\t', col_R, col_S, '\t', col_U, col_V,
-               '\t', tm_rank_1, tm_rank_2]
+        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_N, col_O, col_P, '\t', col_R, col_S, '\t', col_U, col_V, '\t']
             
         return res
 
