@@ -155,7 +155,7 @@ def get_values(driver, match_data, odds):
             return None
         
         if all(item == temp_league_name[0] for item in temp_league_name):
-            for k_3 in range(2):
+            for k_3 in range(3):
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
@@ -212,6 +212,12 @@ def get_values(driver, match_data, odds):
                         # Extract the number before % using regex
                         col_P = re.search(r'(\d+)%', col_P_text).group(1) if re.search(r'(\d+)%', col_P_text) else "N/A"
                         col_S = re.search(r'(\d+)%', col_S_text).group(1) if re.search(r'(\d+)%', col_S_text) else "N/A"
+                    elif k_3 == 2:
+                        col_Q_text = divs[1].text  # Second div found
+                        col_T_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_Q = re.search(r'(\d+)%', col_Q_text).group(1) if re.search(r'(\d+)%', col_Q_text) else "N/A"
+                        col_T = re.search(r'(\d+)%', col_T_text).group(1) if re.search(r'(\d+)%', col_T_text) else "N/A"
                     else:
                         print(f"Error: Unexpected value for k_3: {k_3}")
                         return None
@@ -219,7 +225,7 @@ def get_values(driver, match_data, odds):
                 driver.switch_to.window(original_window)
                 break
         
-            for k_4 in range(2):
+            for k_4 in range(3):
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
@@ -276,13 +282,19 @@ def get_values(driver, match_data, odds):
                         # Extract the number before % using regex
                         col_X = re.search(r'(\d+)%', col_X_text).group(1) if re.search(r'(\d+)%', col_X_text) else "N/A"
                         col_AA = re.search(r'(\d+)%', col_AA_text).group(1) if re.search(r'(\d+)%', col_AA_text) else "N/A"
+                    elif k_3 == 2:
+                        col_Y_text = divs[1].text  # Second div found
+                        col_AB_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_Y = re.search(r'(\d+)%', col_Y_text).group(1) if re.search(r'(\d+)%', col_Y_text) else "N/A"
+                        col_AB = re.search(r'(\d+)%', col_AB_text).group(1) if re.search(r'(\d+)%', col_AB_text) else "N/A"
                     else:
                         print(f"Error: Unexpected value for k_4: {k_4}")
                         return None
                 driver.close()
                 driver.switch_to.window(original_window)
                 break
-        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, '\t', col_R, col_S, '\t', '\t', '\t', col_W, col_X, '\t', col_Z, col_AA]
+        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, '\t', col_R, col_S, col_T, '\t', '\t', col_W, col_X, col_Y, col_Z, col_AA, col_AB]
             
         return res
 
@@ -403,8 +415,6 @@ if len(data)>0:
     sheet.column_dimensions['E'].width = 10
     sheet.column_dimensions['F'].width = 10
     sheet.column_dimensions['H'].width = 10
-    sheet.column_dimensions['S'].width = 25
-    sheet.column_dimensions['V'].width = 25
     wb.save(f'{output_file_name}')
     
     print(f"\n\n***  Successfully Created to {output_file_name} ***\n")
