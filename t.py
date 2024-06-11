@@ -181,7 +181,7 @@ def get_values(driver, match_data, odds):
                 get_url = driver.current_url
                 summary_id = get_url.split("/#")[0].split("/")[-1]
                 print(f"{summary_id}")
-                
+
                 summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
                 driver.get(summary_url)
                 time.sleep(3)
@@ -193,31 +193,96 @@ def get_values(driver, match_data, odds):
                 if summary_leg_name != leg_name:
                     driver.close()
                     driver.switch_to.window(original_window)
-                    continue
+                    break
 
                 divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
-                
+
+                # Ensure there are enough divs to process
                 if len(divs) == 3:
+                # Select the appropriate divs based on k_3
                     if k_3 == 0:
                         col_O_text = divs[1].text  # Second div found
+                        col_R_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_O = re.search(r'(\d+)%', col_O_text).group(1) if re.search(r'(\d+)%', col_O_text) else "N/A"
+                        col_R = re.search(r'(\d+)%', col_R_text).group(1) if re.search(r'(\d+)%', col_R_text) else "N/A"
                     elif k_3 == 1:
-                        col_O_text = divs[2].text  # Third div found
-
-                    # Extract the number before % using regex
-                    match = re.search(r'(\d+)%', col_O_text)
-                    if match:
-                        col_O = match.group(1)
+                        col_P_text = divs[1].text  # Second div found
+                        col_S_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_P = re.search(r'(\d+)%', col_P_text).group(1) if re.search(r'(\d+)%', col_P_text) else "N/A"
+                        col_S = re.search(r'(\d+)%', col_S_text).group(1) if re.search(r'(\d+)%', col_S_text) else "N/A"
                     else:
-                        col_O = "N/A"
-                else:
-                    return None
-                
-                # Assuming you want to break out of the loop after processing the first match
+                        print(f"Error: Unexpected value for k_3: {k_3}")
+                        return None
                 driver.close()
                 driver.switch_to.window(original_window)
                 break
         
-        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t']
+            for k_4 in range(2):
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
+                    ).click()
+                except:
+                    pass
+
+                elements = section_divs[1].find_elements(By.CLASS_NAME, "h2h__row")
+                try:
+                    elements[k_4].click()
+                except IndexError:
+                    print(f"Error: index {k_4} out of range for elements.")
+                    continue
+
+                wait.until(EC.number_of_windows_to_be(2))
+
+                # Loop through until we find a new window handle
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
+
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                print(f"{summary_id}")
+
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
+                driver.get(summary_url)
+                time.sleep(3)
+
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round")[0].strip()
+
+                if summary_leg_name != leg_name:
+                    driver.close()
+                    driver.switch_to.window(original_window)
+                    break
+
+                divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+
+                # Ensure there are enough divs to process
+                if len(divs) == 3:
+                # Select the appropriate divs based on k_3
+                    if k_4 == 0:
+                        col_W_text = divs[1].text  # Second div found
+                        col_Z_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_W = re.search(r'(\d+)%', col_W_text).group(1) if re.search(r'(\d+)%', col_W_text) else "N/A"
+                        col_Z = re.search(r'(\d+)%', col_Z_text).group(1) if re.search(r'(\d+)%', col_Z_text) else "N/A"
+                    elif k_4 == 1:
+                        col_X_text = divs[1].text  # Second div found
+                        col_AA_text = divs[2].text  # Third div found
+                        # Extract the number before % using regex
+                        col_X = re.search(r'(\d+)%', col_X_text).group(1) if re.search(r'(\d+)%', col_X_text) else "N/A"
+                        col_AA = re.search(r'(\d+)%', col_AA_text).group(1) if re.search(r'(\d+)%', col_AA_text) else "N/A"
+                    else:
+                        print(f"Error: Unexpected value for k_4: {k_4}")
+                        return None
+                driver.close()
+                driver.switch_to.window(original_window)
+                break
+        res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, '\t', col_R, col_S, '\t', '\t', '\t', col_W, col_X, '\t', col_Z, col_AA]
             
         return res
 
