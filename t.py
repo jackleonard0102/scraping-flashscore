@@ -7,6 +7,7 @@ Created on Fri Jun  3 04:54:55 2022
 """
 
 from selenium import webdriver
+import re
 import pandas as pd
 import time
 import openpyxl
@@ -132,166 +133,95 @@ def get_values(driver, match_data, odds):
         
         #### Find O - T, W - AB
         section_divs = driver.find_elements(By.CLASS_NAME, 'h2h__section.section')
-
-        # if len(section_divs)<3:
-        #     print("\n$$$ There isn't H2H game records, skipped ! $$$\n")
-        #     return None
-        
-        # soup_section_3 = BeautifulSoup(section_divs[2].get_attribute('innerHTML'), 'html.parser')
-        # soup_h2h_rows_3 = soup_section_3.find_all("div", {"class" : "h2h__row"})    
-        # if len(soup_h2h_rows_3)<1:
-        #     print("\n$$$ There isn't H2H game records, skipped ! $$$\n")
-        #     return None                    
-        # col_N = soup_h2h_rows_3[0].find("span", {"class" : "h2h__date"}).text.strip()
-        
-        # soup_score_h = soup_h2h_rows_3[0].find("span", {"class" : "h2h__result"})
-        # score_h_1 = soup_score_h.find_all("span")[0].text
-        # score_h_2 = soup_score_h.find_all("span")[1].text
-        # col_P = score_h_1+'-'+score_h_2
-        
-        
-        # if col_P in ['1-1', '1-0', '0-1', '0-0']:
-        #     print(f"\n### Column P (Score) : {col_P}, skipped, \n")
-        #     return None
-        
-        # names_div = soup_h2h_rows_3[0].find_all("span", {"class" : "h2h__participantInner"})  
-        # name_1 = names_div[0].text.strip()
-        # name_2 = names_div[1].text.strip()
-        # print(name_1==tm_name_h, name_2==tm_name_h)
-        # if name_1 == tm_name_h:
-        #     if int(score_h_1) > int(score_h_2):
-        #         col_O = 1
-        #     else:
-        #         col_O = 2
-        # elif name_2 == tm_name_h:
-        #     if int(score_h_1) > int(score_h_2):
-        #         col_O = 2
-        #     else:
-        #         col_O = 1
-        # else:
-        #     col_O = "D"
-        
-        
         soup_section_1 = BeautifulSoup(section_divs[0].get_attribute('innerHTML'), 'html.parser')
-        soup_h2h_rows_1 = soup_section_1.find_all("div", {"class" : "h2h__row"})
+        temp_soup_h2h_rows_1 = soup_section_1.find_all("div", {"class" : "h2h__row"})
         soup_section_2 = BeautifulSoup(section_divs[1].get_attribute('innerHTML'), 'html.parser')
-        soup_h2h_rows_2 = soup_section_2.find_all("div", {"class" : "h2h__row"}) 
-        soup_h2h_rows = []
+        temp_soup_h2h_rows_2 = soup_section_2.find_all("div", {"class" : "h2h__row"}) 
+        if len(combined_soup_h2h_rows) < 2:
+            return None
+        combined_soup_h2h_rows = []
+        temp_league_status = []
+        temp_league_name = []
         for k_1 in range(2):
-            soup_h2h_rows.append((soup_h2h_rows_1[k_1], soup_h2h_rows_2[k_1]))
-            # print ("*****************rowwwwwwwwwwws ",soup_h2h_rows)
-        for k_2 in range(len(soup_h2h_rows)):
-            temp_league_name = soup_h2h_rows[k_2].find("span", {"class" : "h2h__event"}).get('title').split("(")[0].strip().lower()
-            temp_league_status = soup_h2h_rows[k_2].find("span", {"class" : "h2h__icon"}).text.strip()
-            print("**************************temp_league_name:", temp_league_name)
+            combined_soup_h2h_rows.append(temp_soup_h2h_rows_1[k_1])
+            combined_soup_h2h_rows.append(temp_soup_h2h_rows_2[k_1])
+        for k_2 in range(len(combined_soup_h2h_rows)):
+            temp_league_name.append(combined_soup_h2h_rows[k_2].find("span", {"class" : "h2h__event"}).get('title').strip())
+            temp_league_status.append(combined_soup_h2h_rows[k_2].find("span", {"class" : "h2h__icon"}).text.strip())
+        print("**************************status:", temp_league_status, temp_league_name)
+            
+        if 'L' in temp_league_status:
+            print("$$$   The previous game lost!!!   $$$")
+            return None
         
-        # for k_1 in range(len(soup_h2h_rows_1)):                
-        #     temp_league_name = soup_h2h_rows_1[k_1].find("span", {"class" : "h2h__event"}).get('title').split("(")[0].strip().lower() 
-        #     #print("1 : ", temp_league_name)
-        #     if temp_league_name not in leg_name.lower():                
-        #         ## click and get Stats for 2 Players:
-        #         try:
-        #             WebDriverWait(driver, 10)
-        #             driver.find_element(By.XPATH, '//*[@id="onetrust-accept-btn-handler"]').click()
-        #             driver.minimize_window()
-        #         except:
-        #             pass
-                
-        #         ##  click 1st game row
-        #         elements = section_divs[0].find_elements(By.CLASS_NAME, "h2h__row")  
+        if all(item == temp_league_name[0] for item in temp_league_name):
+            for k_3 in range(2):
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
+                    ).click()
+                except:
+                    pass
 
-        #         col_R = soup_h2h_rows_1[k_1].find("span", {"class" : "h2h__icon"}).text.strip()   
-        #         date_1 = soup_h2h_rows_1[k_1].find("span", {"class" : "h2h__date"}).text.strip()
-        #         if date_1 == col_N:
-        #             print("$$$   The same game with H2H for the 1st past game, skipped !!!   $$$")
-        #             return None
-                
-        #         elements[k_1].click()
-        #         driver.minimize_window()
-                
-        #         wait.until(EC.number_of_windows_to_be(2))
-            
-        #         # Loop through until we find a new window handle
-        #         for window_handle in driver.window_handles:
-        #             if window_handle != original_window:
-        #                 driver.switch_to.window(window_handle)
-                
-        #         time.sleep(3)
-        #         get_url = str(driver.current_url)
-        #         id_1st = get_url.split("/#")[0].split("/")[-1]
-        #         print(f"{id_1st}")
+                elements = section_divs[0].find_elements(By.CLASS_NAME, "h2h__row")
+                try:
+                    elements[k_3].click()
+                except IndexError:
+                    print(f"Error: index {k_3} out of range for elements.")
+                    continue
 
-        #         #url_1st = f"https://www.flashscore.com/match/{id_1st}/#/match-summary/match-statistics/0"
-        #         url_3rd = f"https://www.flashscore.com/match/{id_1st}/#/match-summary/match-summary"
-        #         driver.minimize_window()
-        #         driver.get(url_3rd)
-        #         time.sleep(3)
+                wait.until(EC.number_of_windows_to_be(2))
+
+                # Loop through until we find a new window handle
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
+
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                print(f"{summary_id}")
                 
-        #         league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-        #         soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-        #         col_S = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(" - ")[-1].strip()
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
+                driver.get(summary_url)
+                time.sleep(3)
+
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round")[0].strip()
+
+                if summary_leg_name != leg_name:
+                    driver.close()
+                    driver.switch_to.window(original_window)
+                    continue
+
+                divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
                 
-        #         leg_name_1st = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.strip()
-        #         if  'QUALIFICATION' in leg_name_1st.upper():
-        #             print("QUALIFICATION Game for 1st past game, Skipped !. ")
-        #             return None    
+                if len(divs) == 3:
+                    if k_3 == 0:
+                        col_O_text = divs[1].text  # Second div found
+                    elif k_3 == 1:
+                        col_O_text = divs[2].text  # Third div found
+
+                    # Extract the number before % using regex
+                    match = re.search(r'(\d+)%', col_O_text)
+                    if match:
+                        col_O = match.group(1)
+                    else:
+                        col_O = "N/A"
+                else:
+                    return None
                 
-        #         driver.close()
-        #         driver.switch_to.window(original_window)
-                
-        #         break
-       
-        # for k_2 in range(len(soup_h2h_rows_2)):
-        #     temp_league_name = soup_h2h_rows_2[k_2].find("span", {"class" : "h2h__event"}).get('title').split("(")[0].strip().lower() 
-        #     if temp_league_name not in leg_name.lower():  
-                     
-        #         elements = section_divs[1].find_elements(By.CLASS_NAME, "h2h__row")  
-                
-        #         col_U = soup_h2h_rows_2[k_2].find("span", {"class" : "h2h__icon"}).text.strip()   
-                
-        #         date_2 = soup_h2h_rows_2[k_2].find("span", {"class" : "h2h__date"}).text.strip()
-        #         if date_2 == col_N:
-        #             print("$$$   The same game with H2H for the 2nd past game, skipped !!!   $$$")
-        #             return None
-        #         elements[k_2].click()
-        #         driver.minimize_window()
-                
-        #         wait.until(EC.number_of_windows_to_be(2))
-            
-        #         # Loop through until we find a new window handle
-        #         for window_handle in driver.window_handles:
-        #             if window_handle != original_window:
-        #                 driver.switch_to.window(window_handle)
-                
-        #         time.sleep(3)
-        #         get_url = str(driver.current_url)
-        #         id_2nd = get_url.split("/#")[0].split("/")[-1]
-        #         print(f"{id_2nd}")
-        #         #url_2nd = f"https://www.flashscore.com/match/{id_2nd}/#/match-summary/match-statistics/0"
-        #         url_3rd = f"https://www.flashscore.com/match/{id_2nd}/#/match-summary/match-summary"
-        #         driver.minimize_window()
-        #         driver.get(url_3rd)
-        #         time.sleep(3)
-                
-        #         league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-        #         soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-        #         col_V = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(" - ")[-1].strip()
-        #         leg_name_2nd = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.strip()
-        #         if  'QUALIFICATION' in leg_name_2nd.upper():
-        #             print("QUALIFICATION Game for 2nd past game, Skipped !. ")
-        #             return None    
-                
-        #         driver.close()
-        #         driver.switch_to.window(original_window)
-                
-        #         break
+                # Assuming you want to break out of the loop after processing the first match
+                driver.close()
+                driver.switch_to.window(original_window)
+                break
         
         res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t']
             
         return res
 
-                    
-    return None
+                   
 
 
 def get_odds_data_2():
