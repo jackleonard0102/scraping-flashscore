@@ -162,7 +162,7 @@ def get_values(driver, match_data, odds):
 
         if all(item == temp_league_name[0] for item in temp_league_name):
             # Iterate over H2H sections to extract required data
-            for k_3, section in enumerate(section_divs[:2]):
+            for k_3, section in enumerate(section_divs[:3]):
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
@@ -203,7 +203,10 @@ def get_values(driver, match_data, odds):
                     element_found = True
 
                     # Extract percentages from div elements
-                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                    if driver.find("div", class_="duelParticipant__home duelParticipant--winner"):
+                        divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                    else:
+                        divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
                     for i, div in enumerate(divs):
                         print(f"Div {i} HTML: {div.get_attribute('innerHTML')}")
 
@@ -234,7 +237,7 @@ def get_values(driver, match_data, odds):
             if not element_found:
                 return None  # Skip if no valid element was found
 
-            for k_4, section in enumerate(section_divs[:2]):
+            for k_4, section in enumerate(section_divs[:3]):
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
