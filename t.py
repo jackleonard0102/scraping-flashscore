@@ -162,158 +162,126 @@ def get_values(driver, match_data, odds):
 
         if all(item == temp_league_name[0] for item in temp_league_name):
             # Iterate over H2H sections to extract required data
-            for k_3, section in enumerate(section_divs[:3]):
-                try:
-                    WebDriverWait(driver, 10).until(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
-                    ).click()
-                except:
-                    pass
-                
-                elements = section.find_elements(By.CLASS_NAME, "h2h__row")
-                if len(elements) < 3:
-                    print("Error: Not enough elements in the list.")
-                    continue
+            elements_1 = section_divs[0].find_elements(By.CLASS_NAME, "h2h__row")
+            elements_2 = section_divs[1].find_elements(By.CLASS_NAME, "h2h__row")
+            
 
-                element_found = False
-                
-                for element in elements[:3]:
-                    element.click()
-                    wait.until(EC.number_of_windows_to_be(2))
-                    for window_handle in driver.window_handles:
-                        if window_handle != original_window:
-                            driver.switch_to.window(window_handle)
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
+                ).click()
+            except:
+                pass
+            
+            for k_3, element in enumerate(elements_1[:3]):
+                element.click()
+                wait.until(EC.number_of_windows_to_be(2))
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
 
-                    time.sleep(3)
-                    get_url = driver.current_url
-                    summary_id = get_url.split("/#")[0].split("/")[-1]
-                    summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
-                    driver.get(summary_url)
-                    time.sleep(3)
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
+                driver.get(summary_url)
+                time.sleep(3)
 
-                    league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-                    soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                    summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(",")[0].strip()
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(",")[0].strip()
 
-                    if summary_leg_name == leg_name:
-                        driver.close()
-                        driver.switch_to.window(original_window)
-                        continue  # Skip this summary and try the next one
-                    
-                    element_found = True
-
-                    # Extract percentages from div elements
-                    winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
-                    if winner_elems:
-                        divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
-                    else:
-                        divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
-                    for i, div in enumerate(divs):
-                        print(f"Div {i} HTML: {div.get_attribute('innerHTML')}")
-
-                    if len(divs) == 3:
-                        text_map = {
-                            0: ("col_O", "col_R"),
-                            1: ("col_P", "col_S"),
-                            2: ("col_Q", "col_T")
-                        }
-                        col1, col2 = text_map.get(k_3, ("N/A", "N/A"))
-                        col1_text, col2_text = divs[1].text, divs[2].text
-
-                        if k_3 == 0:
-                            col_O = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_R = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
-                        elif k_3 == 1:
-                            col_P = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_S = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
-                        elif k_3 == 2:
-                            col_Q = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_T = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
-
+                if summary_leg_name != leg_name:
                     driver.close()
                     driver.switch_to.window(original_window)
-                    if element_found:
-                        break
-
-            if not element_found:
-                return None  # Skip if no valid element was found
-
-            for k_4, section in enumerate(section_divs[:3]):
-                try:
-                    WebDriverWait(driver, 10).until(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
-                    ).click()
-                except:
-                    pass
-
-                elements = section.find_elements(By.CLASS_NAME, "h2h__row")
-                if len(elements) < 3:
-                    print("Error: Not enough elements in the list.")
-                    continue
-
-                element_found = False
+                    continue  # Skip this summary and try the next one
                 
-                for element in elements[:3]:
-                    element.click()
-                    wait.until(EC.number_of_windows_to_be(2))
-                    for window_handle in driver.window_handles:
-                        if window_handle != original_window:
-                            driver.switch_to.window(window_handle)
+                # Extract percentages from div elements
+                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                if winner_elems:
+                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                else:
+                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+                for i, div in enumerate(divs):
+                    print(f"Div {i} HTML: {div.get_attribute('innerHTML')}")
 
-                    time.sleep(3)
-                    get_url = driver.current_url
-                    summary_id = get_url.split("/#")[0].split("/")[-1]
-                    summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
-                    driver.get(summary_url)
-                    time.sleep(3)
+                if len(divs) == 3:
+                    text_map = {
+                        0: ("col_O", "col_R"),
+                        1: ("col_P", "col_S"),
+                        2: ("col_Q", "col_T")
+                    }
+                    col1_text, col2_text = divs[1].text, divs[2].text
 
-                    league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-                    soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                    summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(",")[0].strip()
+                    if k_3 == 0:
+                        col_O = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_R = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+                    elif k_3 == 1:
+                        col_P = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_S = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+                    elif k_3 == 2:
+                        col_Q = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_T = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
 
-                    if summary_leg_name == leg_name:
-                        driver.close()
-                        driver.switch_to.window(original_window)
-                        continue  # Skip this summary and try the next one
-                    
-                    element_found = True
+                driver.close()
+                driver.switch_to.window(original_window)
 
-                    # Extract percentages from div elements
-                    winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
-                    if winner_elems:
-                        divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
-                    else:
-                        divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
-                    for j, div in enumerate(divs):
-                        print(f"Away Div {j} HTML: {div.get_attribute('innerHTML')}")
+            for k_4, element in enumerate(elements_2[:3]):
+                element.click()
+                wait.until(EC.number_of_windows_to_be(2))
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
 
-                    if len(divs) == 3:
-                        text_map = {
-                            0: ("col_W", "col_Z"),
-                            1: ("col_X", "col_AA"),
-                            2: ("col_Y", "col_AB")
-                        }
-                        col1, col2 = text_map.get(k_4, ("N/A", "N/A"))
-                        col1_text, col2_text = divs[1].text, divs[2].text
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-summary"
+                driver.get(summary_url)
+                time.sleep(3)
 
-                        if k_4 == 0:
-                            col_W = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_Z = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
-                        elif k_4 == 1:
-                            col_X = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_AA = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
-                        elif k_4 == 2:
-                            col_Y = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
-                            col_AB = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(",")[0].strip()
 
+                if summary_leg_name != leg_name:
                     driver.close()
                     driver.switch_to.window(original_window)
-                    if element_found:
-                        break
+                    continue  # Skip this summary and try the next one
+                
+                # Extract percentages from div elements
+                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                if winner_elems:
+                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                else:
+                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+                for i, div in enumerate(divs):
+                    print(f"Div {i} HTML: {div.get_attribute('innerHTML')}")
 
-            if element_found:
-                res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, col_Q, col_R, col_S, col_T, '\t', '\t', col_W, col_X, col_Y, col_Z, col_AA, col_AB]
-                return res
+                if len(divs) == 3:
+                    text_map = {
+                        0: ("col_W", "col_Z"),
+                        1: ("col_X", "col_AA"),
+                        2: ("col_Y", "col_AB")
+                    }
+                    col1_text, col2_text = divs[1].text, divs[2].text
+
+                    if k_4 == 0:
+                        col_W = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_Z = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+                    elif k_4 == 1:
+                        col_X = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_AA = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+                    elif k_4 == 2:
+                        col_Y = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "N/A"
+                        col_AB = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "N/A"
+
+                driver.close()
+                driver.switch_to.window(original_window)
+                    
+
+            res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, col_Q, col_R, col_S, col_T, '\t', '\t', col_W, col_X, col_Y, col_Z, col_AA, col_AB]
+            return res
 
         return None
     except Exception as e:
