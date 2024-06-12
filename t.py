@@ -158,7 +158,7 @@ def get_values(driver, match_data, odds):
             return None
 
         # Initialize variables with default values
-        col_O = col_P = col_Q = col_R = col_S = col_T = col_W = col_X = col_Y = col_Z = col_AA = col_AB = "N/A"
+        col_O = col_P = col_Q = col_R = col_S = col_T = col_W = col_X = col_Y = col_Z = col_AA = col_AB = "\t"
 
         if all(item == temp_league_name[0] for item in temp_league_name):
             # Iterate over H2H sections to extract required data
@@ -203,7 +203,8 @@ def get_values(driver, match_data, odds):
                     element_found = True
 
                     # Extract percentages from div elements
-                    if driver.find("div", class_="duelParticipant__home duelParticipant--winner"):
+                    winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                    if winner_elems:
                         divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
                     else:
                         divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
@@ -278,7 +279,11 @@ def get_values(driver, match_data, odds):
                     element_found = True
 
                     # Extract percentages from div elements
-                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+                    winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                    if winner_elems:
+                        divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                    else:
+                        divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
                     for j, div in enumerate(divs):
                         print(f"Away Div {j} HTML: {div.get_attribute('innerHTML')}")
 
