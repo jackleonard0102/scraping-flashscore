@@ -17,6 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.common.action_chains import ActionChains
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
@@ -42,9 +43,15 @@ def get_available_match_ids(driver):
     print("\n\n**** Date : ", date, "  ****\n\n")
     
     
-
-    match_ids = []   
-    
+    titles = driver.find_elements(By.CLASS_NAME, 'wclLeagueHeader')
+    indexs = []
+    for title in titles:
+        temp_title = title.find_element(By.CLASS_NAME, 'wclLeagueHeader__overline').text
+        print (temp_title)
+        if "ITF" in temp_title:
+            index = titles.index(title)
+            driver.execute_script(f'document.querySelectorAll(".wclLeagueHeader button._accordion_nfn42_4")[{index}].click()')
+    match_ids = []    
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
     matches_number = len(matches)   # the number of matches of specific day
     print("\n**** Total Matches Number : ", matches_number, "  ****\n")
