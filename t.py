@@ -154,7 +154,7 @@ def get_values(driver, match_data, odds):
         temp_league_status = [row.find("span", {"class": "h2h__icon"}).text.strip() for row in combined_soup_h2h_rows]
         temp_league_name = [row.find("span", {"class": "h2h__event"}).get('title').strip() for row in combined_soup_h2h_rows]
         temp_score = [row.find("span", {"class": "h2h__result"}).text.strip() for row in combined_soup_h2h_rows]
-        print ("tempscore:-------", temp_score)
+        print ("last two matches record ----------- ", temp_score)
         
         for value in ['11', '01', '10']:
             if value in temp_score:
@@ -171,8 +171,6 @@ def get_values(driver, match_data, odds):
             # Iterate over H2H sections to extract required data
             elements_1 = section_divs[0].find_elements(By.CLASS_NAME, "h2h__row")
             elements_2 = section_divs[1].find_elements(By.CLASS_NAME, "h2h__row")
-            
-
             try:
                 WebDriverWait(driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
