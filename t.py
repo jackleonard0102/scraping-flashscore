@@ -291,7 +291,7 @@ def get_values(driver, match_data, odds):
                 driver.close()
                 driver.switch_to.window(original_window)
 
-            for k_4, element in enumerate(elements_2[:3]):
+            for k_4, element in enumerate(elements_2[:2]):
                 element.click()
                 wait.until(EC.number_of_windows_to_be(2))
                 for window_handle in driver.window_handles:
