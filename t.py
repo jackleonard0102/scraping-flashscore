@@ -107,7 +107,9 @@ def get_values(driver, match_data, odds):
         
         league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
         soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-        leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+        leg_name_1 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+        leg_name_2 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[1].split(",")[0].strip()
+        leg_name = leg_name_1 + "-" + leg_name_2
 
         teams_div = driver.find_element(By.CLASS_NAME, 'duelParticipant')
         soup_tm = BeautifulSoup(teams_div.get_attribute('innerHTML'), 'html.parser')
@@ -178,74 +180,6 @@ def get_values(driver, match_data, odds):
             except:
                 pass
             
-            if elements_1[2].find_element(By.CSS_SELECTOR, ".h2h__icon").text.strip() == "W":
-                elements_1[2].click
-                wait.until(EC.number_of_windows_to_be(2))
-                for window_handle in driver.window_handles:
-                    if window_handle != original_window:
-                        driver.switch_to.window(window_handle)
-
-                time.sleep(3)
-                get_url = driver.current_url
-                summary_id = get_url.split("/#")[0].split("/")[-1]
-                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-statistics/0"
-                driver.get(summary_url)
-                time.sleep(3)
-                
-                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
-                
-                if summary_leg_name != leg_name:
-                    driver.close()
-                    driver.switch_to.window(original_window)
-                
-                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
-                if winner_elems:
-                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
-                else:
-                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
-                
-                col1_text, col2_text = divs[3].text, divs[4].text
-                
-                col_Q = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "\t"
-                col_T = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "\t"
-                
-                
-            if elements_2[2].find_element(By.CSS_SELECTOR, ".h2h__icon").text.strip() == "W":
-                elements_2[2].click
-                wait.until(EC.number_of_windows_to_be(2))
-                for window_handle in driver.window_handles:
-                    if window_handle != original_window:
-                        driver.switch_to.window(window_handle)
-
-                time.sleep(3)
-                get_url = driver.current_url
-                summary_id = get_url.split("/#")[0].split("/")[-1]
-                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-statistics/0"
-                driver.get(summary_url)
-                time.sleep(3)
-                
-                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
-                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
-                
-                if summary_leg_name != leg_name:
-                    driver.close()
-                    driver.switch_to.window(original_window)
-                
-                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
-                if winner_elems:
-                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
-                else:
-                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
-                
-                col1_text, col2_text = divs[3].text, divs[4].text
-                
-                col_Q = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "\t"
-                col_T = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "\t"
-                
-                
             
             for k_3, element in enumerate(elements_1[:2]):
                 element.click()
@@ -263,8 +197,9 @@ def get_values(driver, match_data, odds):
 
                 league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
                 soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
-
+                summary_leg_name_1 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+                summary_leg_name_2 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[1].split(",")[0].strip()
+                summary_leg_name = summary_leg_name_1 + "-" + summary_leg_name_2
                 if summary_leg_name != leg_name:
                     driver.close()
                     driver.switch_to.window(original_window)
@@ -276,6 +211,10 @@ def get_values(driver, match_data, odds):
                     divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
                 else:
                     divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+                    
+                if not divs :
+                    driver.close()
+                    driver.switch_to.window(original_window)
 
                 col1_text, col2_text = divs[3].text, divs[4].text
 
@@ -289,6 +228,7 @@ def get_values(driver, match_data, odds):
                 driver.close()
                 driver.switch_to.window(original_window)
 
+            
             for k_4, element in enumerate(elements_2[:2]):
                 element.click()
                 wait.until(EC.number_of_windows_to_be(2))
@@ -305,7 +245,9 @@ def get_values(driver, match_data, odds):
 
                 league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
                 soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
-                summary_leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split(",")[0].strip()
+                summary_leg_name_1 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+                summary_leg_name_2 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[1].split(",")[0].strip()
+                summary_leg_name = summary_leg_name_1 + "-" + summary_leg_name_2
 
                 if summary_leg_name != leg_name:
                     driver.close()
@@ -319,6 +261,10 @@ def get_values(driver, match_data, odds):
                 else:
                     divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
                 
+                if not divs :
+                    driver.close()
+                    driver.switch_to.window(original_window)
+                    
                 col1_text, col2_text = divs[3].text, divs[4].text
 
                 if k_4 == 0:
@@ -330,7 +276,92 @@ def get_values(driver, match_data, odds):
                 
                 driver.close()
                 driver.switch_to.window(original_window)
+            
+                        
+            if elements_1[2].find_element(By.CSS_SELECTOR, ".h2h__icon").text.strip() == "W":
+                elements_1[2].click()
+                wait.until(EC.number_of_windows_to_be(2))
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
 
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-statistics/0"
+                driver.get(summary_url)
+                time.sleep(3)
+
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name_1 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+                summary_leg_name_2 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[1].split(",")[0].strip()
+                summary_leg_name = summary_leg_name_1 + "-" + summary_leg_name_2
+                
+                if summary_leg_name != leg_name:
+                    print ("trueeeeeeeeeeeeeee")
+                    driver.close()
+                    driver.switch_to.window(original_window)
+                
+                # Extract percentages from div elements
+                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                if winner_elems:
+                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                else:
+                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+                
+                if not divs :
+                    driver.close()
+                    driver.switch_to.window(original_window)
+
+                col1_text, col2_text = divs[3].text, divs[4].text
+                
+                col_Q = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "\t"
+                col_T = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "\t"
+                
+                driver.close()
+                driver.switch_to.window(original_window)
+                
+            if elements_2[2].find_element(By.CSS_SELECTOR, ".h2h__icon").text.strip() == "W":
+                elements_2[2].click()
+                wait.until(EC.number_of_windows_to_be(2))
+                for window_handle in driver.window_handles:
+                    if window_handle != original_window:
+                        driver.switch_to.window(window_handle)
+
+                time.sleep(3)
+                get_url = driver.current_url
+                summary_id = get_url.split("/#")[0].split("/")[-1]
+                summary_url = f"https://www.flashscore.com/match/{summary_id}/#/match-summary/match-statistics/0"
+                driver.get(summary_url)
+                time.sleep(3)
+
+                league_info = driver.find_element(By.CLASS_NAME, 'tournamentHeader__sportNavWrapper')
+                soup_leg = BeautifulSoup(league_info.get_attribute('innerHTML'), 'html.parser')
+                summary_leg_name_1 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[0].strip()
+                summary_leg_name_2 = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("-")[1].split(",")[0].strip()
+                summary_leg_name = summary_leg_name_1 + "-" + summary_leg_name_2
+                
+                if summary_leg_name != leg_name:
+                    print ("trueeeeeeeeeeeeeee")
+                    driver.close()
+                    driver.switch_to.window(original_window)
+                
+                # Extract percentages from div elements
+                winner_elems = driver.find_elements(By.CSS_SELECTOR, ".duelParticipant__home.duelParticipant--winner")
+                if winner_elems:
+                    divs = driver.find_elements(By.CLASS_NAME, '_homeValue_lgd3g_9')
+                else:
+                    divs = driver.find_elements(By.CLASS_NAME, '_awayValue_lgd3g_13')
+
+                col1_text, col2_text = divs[3].text, divs[4].text
+                
+                col_Y = re.search(r'(\d+)%', col1_text).group(1) if re.search(r'(\d+)%', col1_text) else "\t"
+                col_AB = re.search(r'(\d+)%', col2_text).group(1) if re.search(r'(\d+)%', col2_text) else "\t"
+                
+                driver.close()
+                driver.switch_to.window(original_window)
+            
             res = [leg_name.upper(), tm_name_h, tm_name_a, '\t', game_time, '\t', '\t', odds[0], odds[1], '\t', tm_rank_1, tm_rank_2, tm_rank_1 - tm_rank_2, '\t', col_O, col_P, col_Q, col_R, col_S, col_T, '\t', '\t', col_W, col_X, col_Y, col_Z, col_AA, col_AB]
             return res
 
