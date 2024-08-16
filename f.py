@@ -87,7 +87,7 @@ def get_match_ids(driver):
 
 def scrape_team_1_2(driver, temp_id, odds):
     #temp_id = "fiyntA89"
-    url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/overall"
+    url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/top_scorers"
     #url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/form/overall/5"
         
     driver.minimize_window()
@@ -104,7 +104,8 @@ def scrape_team_1_2(driver, temp_id, odds):
     
     else:
         leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round")[0].strip()
-         
+        round_number = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round ")[1].strip()
+
         teams_div = driver.find_element(By.CLASS_NAME, 'duelParticipant')
         soup_tm = BeautifulSoup(teams_div.get_attribute('innerHTML'), 'html.parser')
         tms = soup_tm.find_all("div", {"class": "participant__participantNameWrapper"})
