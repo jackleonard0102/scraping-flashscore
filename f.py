@@ -110,125 +110,138 @@ def scrape_team_1_2(driver, temp_id, odds):
         soup_tm = BeautifulSoup(teams_div.get_attribute('innerHTML'), 'html.parser')
         tms = soup_tm.find_all("div", {"class": "participant__participantNameWrapper"})
         game_time = soup_tm.find("div", {"class": "duelParticipant__startTime"}).text.split(" ")[-1]
-    
         #detailScore__wrapper
+        top_score_teams = soup_tm.find_all("div", {"class": "ui-table__row topScorers__row topScorers__row--selected"})
         game_score = soup_tm.find("div", {"class": "detailScore__wrapper"}).text.strip()
         
         if game_score != '-':
-            print("\n### Finished Game, Skipped !. ###")
+            print("\n### Finished Game, Skipped due to game score! ###")
             return None
+
+        elif round_number <= 5:
+            print("\n### Skipped because the round number is 5 or less! ###")
+            return None
+        
+        elif len(top_score_teams) < 4:
+            print("\n### Skipped because the top scores of current teams is less than 4! ###")
+            return None
+
         else:
             tm_name_h = tms[0].text.strip()
             tm_name_a = tms[1].text.strip()
             
-            table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
-            soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
+            # table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
+            # soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
             
-            rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
+            # rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
             
 
-            F_1 = int(rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text)
-            F_2 = int(rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text)
+            # F_1 = int(rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text)
+            # F_2 = int(rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text)
         
-            #col_K = min(int(F_1), int(F_2))
-            if (F_1 < 8) | (F_2 < 8):
-                print(f"\n###  Q or R < 8, Skipped  ###\n")
-                return None
+            # #col_K = min(int(F_1), int(F_2))
+            # if (F_1 < 8) | (F_2 < 8):
+            #     print(f"\n###  Q or R < 8, Skipped  ###\n")
+            #     return None
             
-            else:
-                #ui-table__row  
-                rank_all = len(soup_table.find_all("div", {"class": "ui-table__row"}))
-                rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
-                tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                #F_1_h = int(rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text)
-                G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
-                #P_1  = rows_h_a[0].find("span", {"class" : "table__cell--points"}).text.strip()
-                rank_1  = rows_h_a[0].find("div", {"class" : "tableCellRank"}).text.strip().replace(".", "")
+            # else:
+            #     #ui-table__row  
+            #     rank_all = len(soup_table.find_all("div", {"class": "ui-table__row"}))
+            #     rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
+            #     tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     #F_1_h = int(rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text)
+            #     G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
+            #     #P_1  = rows_h_a[0].find("span", {"class" : "table__cell--points"}).text.strip()
+            #     rank_1  = rows_h_a[0].find("div", {"class" : "tableCellRank"}).text.strip().replace(".", "")
                 
-                tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                #F_2_a = int(rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text)
-                G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":")
-                #P_2  = rows_h_a[1].find("span", {"class" : "table__cell--points"}).text.strip()
-                rank_2  = rows_h_a[1].find("div", {"class" : "tableCellRank"}).text.strip().replace(".", "")
+            #     tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     #F_2_a = int(rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text)
+            #     G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":")
+            #     #P_2  = rows_h_a[1].find("span", {"class" : "table__cell--points"}).text.strip()
+            #     rank_2  = rows_h_a[1].find("div", {"class" : "tableCellRank"}).text.strip().replace(".", "")
                 
-                if tm_1_h == tm_name_h:
-                    rank_h = rank_1
-                    rank_a = rank_2
+            #     if tm_1_h == tm_name_h:
+            #         rank_h = rank_1
+            #         rank_a = rank_2
                     
-                elif tm_2_a == tm_name_h:            
-                    rank_a = rank_1
-                    rank_h = rank_2
+            #     elif tm_2_a == tm_name_h:            
+            #         rank_a = rank_1
+            #         rank_h = rank_2
 
-                try:
-                    val = int(rank_1)
-                    val = int(rank_2)
-                except:
-                    print("*** Invalid Ranking Number, Skipped !  ***")
-                    return None
+            #     try:
+            #         val = int(rank_1)
+            #         val = int(rank_2)
+            #     except:
+            #         print("*** Invalid Ranking Number, Skipped !  ***")
+            #         return None
                 
-                url_home = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/home"
-                driver.get(url_home)
-                time.sleep(3)
+            #     url_home = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/home"
+            #     driver.get(url_home)
+            #     time.sleep(3)
                 
-                table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
-                soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
+            #     table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
+            #     soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
                 
-                rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
-                tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
-                tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":") 
-                #table__cell--value
-                MP_home_1  = rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
-                MP_home_2  = rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
-                if tm_name_h == tm_1_h:
-                    new_S = int(G_1_h[0])
-                    new_T = int(G_1_h[1])
-                    MP_home = int(MP_home_1)
-                else:
-                    new_S = int(G_2_a[0])
-                    new_T = int(G_2_a[1])
-                    MP_home = int(MP_home_2)
+            #     rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
+            #     tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
+            #     tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":") 
+            #     #table__cell--value
+            #     MP_home_1  = rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
+            #     MP_home_2  = rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
+            #     if tm_name_h == tm_1_h:
+            #         new_S = int(G_1_h[0])
+            #         new_T = int(G_1_h[1])
+            #         MP_home = int(MP_home_1)
+            #     else:
+            #         new_S = int(G_2_a[0])
+            #         new_T = int(G_2_a[1])
+            #         MP_home = int(MP_home_2)
 
-                url_away = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/away"
-                driver.get(url_away)
-                time.sleep(3)
+            #     url_away = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/away"
+            #     driver.get(url_away)
+            #     time.sleep(3)
                 
-                table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
-                soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
+            #     table_divs = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
+            #     soup_table = BeautifulSoup(table_divs.get_attribute('innerHTML'), 'html.parser')  
                 
-                rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
-                tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
-                tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
-                G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":")     
-                MP_away_1  = rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
-                MP_away_2  = rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
-                if tm_name_a == tm_1_h:
-                    new_U = int(G_1_h[0])
-                    new_V = int(G_1_h[1])
-                    MP_away = int(MP_away_1)
-                else:
-                    new_U = int(G_2_a[0])
-                    new_V = int(G_2_a[1])
-                    MP_away = int(MP_away_2)
+            #     rows_h_a = soup_table.find_all("div", {"class": "table__row--selected"})
+            #     tm_1_h = rows_h_a[0].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     G_1_h  = rows_h_a[0].find("span", {"class" : "table__cell--score"}).text.split(":")
+            #     tm_2_a = rows_h_a[1].find("div", {"class" : "tableCellParticipant"}).text.strip()
+            #     G_2_a  = rows_h_a[1].find("span", {"class" : "table__cell--score"}).text.split(":")     
+            #     MP_away_1  = rows_h_a[0].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
+            #     MP_away_2  = rows_h_a[1].find_all("span", {"class" : "table__cell--value"})[0].text.strip()
+            #     if tm_name_a == tm_1_h:
+            #         new_U = int(G_1_h[0])
+            #         new_V = int(G_1_h[1])
+            #         MP_away = int(MP_away_1)
+            #     else:
+            #         new_U = int(G_2_a[0])
+            #         new_V = int(G_2_a[1])
+            #         MP_away = int(MP_away_2)
 
-                W_Y = round(int(new_S)/int(new_U), 2)
-                X_Z = round(int(new_T)/int(new_V), 2)
+            #     W_Y = round(int(new_S)/int(new_U), 2)
+            #     X_Z = round(int(new_T)/int(new_V), 2)
                 
-                AD_AA = round(new_S/MP_home, 2)
-                AE_AA = round(new_T/MP_home, 2)
-                AF_AB = round(new_U/MP_away, 2)
-                AG_AB = round(new_V/MP_away, 2)
-                res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', odds[0], odds[1], odds[2],
-                       '\t', W_Y, X_Z, '\t', AD_AA, AE_AA, AF_AB, AG_AB, '\t', '\t', rank_all, rank_h, rank_a, 
-                       '\t', F_1, F_2, '\t', MP_home, MP_away, '\t', new_S, new_T, new_U, new_V]
+            #     AD_AA = round(new_S/MP_home, 2)
+            #     AE_AA = round(new_T/MP_home, 2)
+            #     AF_AB = round(new_U/MP_away, 2)
+            #     AG_AB = round(new_V/MP_away, 2)
+            res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', round_number, '\t', 
+                    '\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t', 
+                    '\t', '\t', odds[0], odds[1], odds[2]]
+                
+                # res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', odds[0], odds[1], odds[2],
+                #        '\t', W_Y, X_Z, '\t', AD_AA, AE_AA, AF_AB, AG_AB, '\t', '\t', rank_all, rank_h, rank_a, 
+                #        '\t', F_1, F_2, '\t', MP_home, MP_away, '\t', new_S, new_T, new_U, new_V]
                 
                 
-                print(res)
-                
+            print(res)
+            
 
-                return res
+            return res
                 
     return None
 
