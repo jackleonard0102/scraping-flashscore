@@ -19,61 +19,62 @@ driver = webdriver.Chrome()
 def get_match_ids(driver):
     search_url = "https://www.flashscore.com"
     driver.get(search_url)
-    input('Are you ready to run scraper? Y/N>> ')
+    time.sleep(1)
+    answer = input('are you ready to run scraper ?..Y/N>>')
+    if answer == "n" or answer == "N":
+        exit()
+    print('scraper is running please wait..\n')
     
-    print('Scraper is running, please wait...\n')
-    
-    date_elem = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'calendar__datepicker'))
-    )
-    date = date_elem.text  # Chosen specific day
+    date_elem = driver.find_element(By.CLASS_NAME, 'calendar__datepicker')
+    date = date_elem.text           # chosen specific day
     print("\n\n**** Date : ", date, "  ****\n\n")
     
-    WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]'))
-    ).click()
     
     ## unroll all hidden games
     WebDriverWait(driver, 20)
     driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
     
     unroll_elements = WebDriverWait(driver, 20).until(
-    EC.presence_of_all_elements_located((By.CLASS_NAME, "event__expander--close"))
-    )
+    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='wcl-icon-action-navigation-arrow-down']")))
 
-    print(len(unroll_elements))
+    print("unroll elements number --------> ",len(unroll_elements))
     i = 0
     for element in unroll_elements:
         while True:
             try:
-                # Scroll the element into view
-                driver.execute_script("arguments[0].scrollIntoView(true);", element)
-                time.sleep(1)  # Adding a short delay to ensure stability
+                #driver.execute_script("window.scrollBy(0,100)","")
                 element.click()
-                i += 1
+                i  += 1
                 print('clicked : ', i)
                 break
-            except Exception as e:
-                # Handle specific exceptions like ElementClickInterceptedException
-                print(f"Exception occurred: {str(e)}. Scrolling down slightly and retrying...")
-                driver.execute_script("window.scrollBy(0,100);")
-                time.sleep(1)
+            except:
+                driver.execute_script("window.scrollBy(0,100)","")
                 print(i, "...")
-    
+                              
+    ## get all match ids
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
-    matches_number = len(matches)
+    matches_number = len(matches)   # the number of matches of specific day
     print("\n**** Total Matches Number : ", matches_number, "  ****\n")
     
     match_ids = []
     for match in matches:
+        #event__score
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
-        scores_list = soup_sc.find_all("div", {"class": "event__score"})
-        if not scores_list or not scores_list[0].text.strip().isdigit():
-            row_id = match.get_attribute('id')[4:]
-            match_ids.append(row_id)
-    
-    print(f"\n**** Total Available Unplayed Matches Number : ", len(match_ids), "  ****\n")
+        scores_list = soup_sc.find_all("div", {"class" : "event__score"})
+        if len(scores_list)>0:
+            try:
+                s = int(scores_list[0].text.strip())
+            except:
+                row_id = match.get_attribute('id')
+                row_id = row_id[4:]
+                match_ids.append(row_id)
+        else:
+            row_id = match.get_attribute('id')
+            row_id = row_id[4:]
+            match_ids.append(row_id)            
+    print(f"\n**** Total Available Unplayed Matches Number : ", {len(match_ids)}, "  ****\n")
     return date, match_ids
+
 
 def scrape_team_1_2(driver, temp_id, odds):
     url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/top_scorers"
