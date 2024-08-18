@@ -72,30 +72,33 @@ def get_match_results(driver):
     print("\n**** Total Matches Number : ", matches_number, "  ****\n")
     
     score_results = {}
+
     for match in matches:
-        #event__score
+    #event__score
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
         try:
             stage = soup_sc.find("div", {"class" : "event__stage--block"}).text.strip()
             if stage == "Finished":
                 row_id = match.get_attribute('id')
                 row_id = row_id[4:]
-                tm_name_h = soup_sc.find("div", {"class" : "event__participant--home"}).text
-                tm_name_a = soup_sc.find("div", {"class" : "event__participant--away"}).text
+                tm_name_h = soup_sc.find("div", {"class" : "event__participant--home"}).text.strip().lower()
+                tm_name_a = soup_sc.find("div", {"class" : "event__participant--away"}).text.strip().lower()
                 score_h = int(soup_sc.find("div", {"class" : "event__score--home"}).text)
                 score_a = int(soup_sc.find("div", {"class" : "event__score--away"}).text)
                 
                 col_D = str(score_h)+"-"+str(score_a)
-                if score_h>score_a:
+                if score_h > score_a:
                     col_E = 1
                 elif score_h < score_a:
                     col_E = 2
                 else:
                     col_E = "D"
-    
+
+                print(f"Storing result for {tm_name_h} vs {tm_name_a}: {col_D}, {col_E}")
                 score_results[(tm_name_h, tm_name_a)] = [col_D, col_E]
-        except:
-            pass
+        except Exception as e:
+            print("Error:", e)
+
 
     return date, score_results
 
@@ -103,7 +106,8 @@ def get_match_results(driver):
 date, match_results = get_match_results(driver)
 #print(match_results)
 
-
+def normalize_name(name):
+    return name.strip().lower()
 
 for idx in range(len(raw_df)):
     name_h = raw_df[1][idx]
@@ -112,12 +116,11 @@ for idx in range(len(raw_df)):
     if (name_h, name_a) in match_results.keys():
         res = match_results[(name_h, name_a)]
         print(name_h, name_a, res)
-        raw_df.loc[idx,3] = res[0]
-        raw_df.loc[idx,4] = res[1]
-        raw_df.loc[idx,5] = res[2]
+        raw_df.loc[idx, 3] = res[0]
+        raw_df.loc[idx, 4] = res[1]
     else:
+        print(f"No match found for {name_h} vs {name_a}")
         raw_df = raw_df.drop([idx])
-        
 
         
 if len(raw_df) > 0:
