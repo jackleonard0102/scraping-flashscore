@@ -48,23 +48,23 @@ def get_match_results(driver):
     
     
     ## unroll all hidden games
-    WebDriverWait(driver, 20)
-    driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
+    # WebDriverWait(driver, 20)
+    # driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
     
-    unroll_elements = driver.find_elements(By.CLASS_NAME, "event__expander--close") 
-    print(len(unroll_elements))
-    i = 0
-    for element in unroll_elements:
-        while True:
-            try:
-                #driver.execute_script("window.scrollBy(0,100)","")
-                element.click()
-                i  += 1
-                print('clicked : ', i)
-                break
-            except:
-                driver.execute_script("window.scrollBy(0,100)","")
-                print(i, "...")
+    # unroll_elements = driver.find_elements(By.CLASS_NAME, "event__expander--close") 
+    # print(len(unroll_elements))
+    # i = 0
+    # for element in unroll_elements:
+    #     while True:
+    #         try:
+    #             #driver.execute_script("window.scrollBy(0,100)","")
+    #             element.click()
+    #             i  += 1
+    #             print('clicked : ', i)
+    #             break
+    #         except:
+    #             driver.execute_script("window.scrollBy(0,100)","")
+    #             print(i, "...")
                               
     ## get all match ids
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
@@ -74,33 +74,50 @@ def get_match_results(driver):
     score_results = {}
 
     for match in matches:
-    #event__score
+        # event__score
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
-        try:
-            stage = soup_sc.find("div", {"class" : "event__stage--block"}).text.strip()
+        
+        # Check if the stage element exists
+        stage_elem = soup_sc.find("div", {"class": "event__stage--block"})
+        if stage_elem:
+            stage = stage_elem.text.strip()
             if stage == "Finished":
                 row_id = match.get_attribute('id')
+                print ("this is row_id ================> ", row_id)
                 row_id = row_id[4:]
-                tm_name_h = soup_sc.find("div", {"class" : "event__participant--home"}).text.strip().lower()
-                tm_name_a = soup_sc.find("div", {"class" : "event__participant--away"}).text.strip().lower()
-                score_h = int(soup_sc.find("div", {"class" : "event__score--home"}).text)
-                score_a = int(soup_sc.find("div", {"class" : "event__score--away"}).text)
+                print ("this is row_id from index 3 ================> ", row_id)
                 
-                col_D = str(score_h)+"-"+str(score_a)
-                if score_h > score_a:
-                    col_E = 1
-                elif score_h < score_a:
-                    col_E = 2
+                # Get team names
+                tm_name_h_elem = soup_sc.find("div", {"class": "event__participant--home"})
+                tm_name_a_elem = soup_sc.find("div", {"class": "event__participant--away"})
+                
+                if tm_name_h_elem and tm_name_a_elem:
+                    tm_name_h = tm_name_h_elem.text.strip().lower()
+                    tm_name_a = tm_name_a_elem.text.strip().lower()
+                    
+                    # Get scores
+                    score_h_elem = soup_sc.find("div", {"class": "event__score--home"})
+                    score_a_elem = soup_sc.find("div", {"class": "event__score--away"})
+                    
+                    if score_h_elem and score_a_elem:
+                        score_h = int(score_h_elem.text)
+                        score_a = int(score_a_elem.text)
+                        
+                        col_D = f"{score_h}-{score_a}"
+                        col_E = 1 if score_h > score_a else 2 if score_h < score_a else "D"
+
+                        print(f"Storing result for {tm_name_h} vs {tm_name_a}: {col_D}, {col_E}")
+                        
+                        score_results[(tm_name_h, tm_name_a)] = [col_D, col_E]
+                    else:
+                        print("Scores not found for match")
                 else:
-                    col_E = "D"
-
-                print(f"Storing result for {tm_name_h} vs {tm_name_a}: {col_D}, {col_E}")
-                score_results[(tm_name_h, tm_name_a)] = [col_D, col_E]
-        except Exception as e:
-            print("Error:", e)
-
+                    print("Team names not found for match")
+        # else:
+        #     print("Stage element not found for match")
 
     return date, score_results
+
 
 
 date, match_results = get_match_results(driver)
