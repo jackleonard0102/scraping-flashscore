@@ -48,24 +48,25 @@ def get_match_results(driver):
     print("\n\n**** Date : ", date, "  ****\n\n")
     
     
-    ## unroll all hidden games
-    # WebDriverWait(driver, 20)
-    # driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
+    # unroll all hidden games
+    WebDriverWait(driver, 20)
+    driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
     
-    # unroll_elements = driver.find_elements(By.CLASS_NAME, "event__expander--close") 
-    # print(len(unroll_elements))
-    # i = 0
-    # for element in unroll_elements:
-    #     while True:
-    #         try:
-    #             #driver.execute_script("window.scrollBy(0,100)","")
-    #             element.click()
-    #             i  += 1
-    #             print('clicked : ', i)
-    #             break
-    #         except:
-    #             driver.execute_script("window.scrollBy(0,100)","")
-    #             print(i, "...")
+    unroll_elements = WebDriverWait(driver, 20).until(
+    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='wcl-icon-action-navigation-arrow-down']")))
+    print(len(unroll_elements))
+    i = 0
+    for element in unroll_elements:
+        while True:
+            try:
+                #driver.execute_script("window.scrollBy(0,100)","")
+                element.click()
+                i  += 1
+                print('clicked : ', i)
+                break
+            except:
+                driver.execute_script("window.scrollBy(0,100)","")
+                print(i, "...")
                               
     ## get all match ids
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
