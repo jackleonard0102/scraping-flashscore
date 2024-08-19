@@ -25,6 +25,7 @@ output_file_name = "output.xlsx"
 
 try:
     raw_df = pd.read_excel(output_file_name, header=None)
+    print ("this is excel data =============> ", raw_df)
     flag = True
 except:
     print(f"\n\n*** {output_file_name} file doesn't exist now, please run first program to get output.xlsx file!.\n")
@@ -76,20 +77,20 @@ def get_match_results(driver):
     for match in matches:
         # event__score
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
-        
+        # print ("this is soup_sc ================> ", soup_sc)
         # Check if the stage element exists
         stage_elem = soup_sc.find("div", {"class": "event__stage--block"})
         if stage_elem:
             stage = stage_elem.text.strip()
             if stage == "Finished":
                 row_id = match.get_attribute('id')
-                print ("this is row_id ================> ", row_id)
+                # print ("this is row_id ================> ", row_id)
                 row_id = row_id[4:]
-                print ("this is row_id from index 3 ================> ", row_id)
+                # print ("this is row_id from index 3 ================> ", row_id)
                 
                 # Get team names
-                tm_name_h_elem = soup_sc.find("div", {"class": "event__participant--home"})
-                tm_name_a_elem = soup_sc.find("div", {"class": "event__participant--away"})
+                tm_name_h_elem = soup_sc.find("div", {"class": "_participant_j0qo9_4 event__homeParticipant"})
+                tm_name_a_elem = soup_sc.find("div", {"class": "_participant_j0qo9_4 event__awayParticipant"})
                 
                 if tm_name_h_elem and tm_name_a_elem:
                     tm_name_h = tm_name_h_elem.text.strip().lower()
@@ -109,6 +110,7 @@ def get_match_results(driver):
                         print(f"Storing result for {tm_name_h} vs {tm_name_a}: {col_D}, {col_E}")
                         
                         score_results[(tm_name_h, tm_name_a)] = [col_D, col_E]
+                        # print ("score results ===========> ", score_results)
                     else:
                         print("Scores not found for match")
                 else:
@@ -127,34 +129,34 @@ def normalize_name(name):
     return name.strip().lower()
 
 for idx in range(len(raw_df)):
-    name_h = raw_df[1][idx]
-    name_a = raw_df[2][idx]
+    name_h = normalize_name(raw_df[1][idx])
+    name_a = normalize_name(raw_df[2][idx])
     
     if (name_h, name_a) in match_results.keys():
         res = match_results[(name_h, name_a)]
-        print(name_h, name_a, res)
+        print(f"Match found: {name_h} vs {name_a} - {res}")
         raw_df.loc[idx, 3] = res[0]
         raw_df.loc[idx, 4] = res[1]
     else:
         print(f"No match found for {name_h} vs {name_a}")
         raw_df = raw_df.drop([idx])
 
-        
+raw_df = raw_df.reset_index(drop=True)
+
 if len(raw_df) > 0:
     print(raw_df.shape)    
-    #raw_df = raw_df.reset_index()
     raw_df.columns = [str(val) for val in range(raw_df.shape[1])]
     raw_df = raw_df.style.set_properties(subset=[str(val+3) for val in range(raw_df.shape[1]-3)], **{'text-align': 'center'})
-    raw_df.to_excel(output_file_name, index = False, header=False)
-    wb = openpyxl.load_workbook(f'{output_file_name}')
+    raw_df.to_excel(output_file_name, index=False, header=False)
+    wb = openpyxl.load_workbook(output_file_name)
     sheet = wb.active
     sheet.column_dimensions['A'].width = 35
     sheet.column_dimensions['B'].width = 22
     sheet.column_dimensions['C'].width = 22
     sheet.column_dimensions['D'].width = 10
-    wb.save(f'{output_file_name}')
-    #raw_df.to_excel("output.xlsx",header=False,index=False)
+    wb.save(output_file_name)
     print(f"\n\n*** Successfully updated output file as {output_file_name} *** \n")
 else:
     print(f"\n\n****  {output_file_name} data is very old, You please get output.csv file again at first.")
+
 driver.close()
