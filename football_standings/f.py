@@ -109,7 +109,7 @@ def scrape_team_1_2(driver, temp_id, odds):
         print("\n### Skipped because the round number is 5 or less! ###")
         return None
 
-    if len(top_score_teams) < 4:
+    if len(top_score_teams) < 3:
         print("score lengths: =======",  len(top_score_teams))
         print("\n### Skipped because there are less than 4 top scorers! ###")
         return None
