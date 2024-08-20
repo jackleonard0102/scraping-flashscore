@@ -10,6 +10,8 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import openpyxl
 
@@ -141,7 +143,7 @@ def scrape_team_1_2(driver, temp_id, odds):
     
     
     res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', round_number, '\t', 
-           team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2]]
+           team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2], '\t', '\t', odds[0], odds[1], odds[2]]
     
     print(res)
     return res
@@ -152,9 +154,21 @@ def get_odds_data_2():
     browser_2 = webdriver.Chrome()
     target_url = "https://www.betexplorer.com/next/soccer/"
     browser_2.get(target_url)
+    
     WebDriverWait(browser_2, 10).until(
         EC.presence_of_element_located((By.ID, 'nr-ko-all'))
     )
+    
+    # Scroll down the page until it's fully loaded
+    last_height = browser_2.execute_script("return document.body.scrollHeight")
+    while True:
+        browser_2.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+        new_height = browser_2.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
+
     time.sleep(5)
     
     process_key = input("Do you process from this odds portal page? y(yes)/Enter(no) ")
