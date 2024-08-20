@@ -185,7 +185,7 @@ def scrape_team_1_2(driver, temp_id, odds):
             else:
                 form_icons_J_K = form_icons_text
     
-    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t',  form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2]]
+    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t',  form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2]]
     
     print(res)
     return res
