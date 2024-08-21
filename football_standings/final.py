@@ -152,7 +152,7 @@ def scrape_team_1_2(driver, temp_id, odds):
     standings_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
     soup_standings = BeautifulSoup(standings_div.get_attribute('innerHTML'), 'html.parser')
     standings_data = soup_standings.find_all("div", {"class": "ui-table__row table__row--selected"})
-    print ("this is standings_data ========? ", standings_data)
+    # print ("this is standings_data ========? ", standings_data)
     form_icons_G_H = ["", ""]
     form_icons_J_K = ["", ""]
     
@@ -161,13 +161,13 @@ def scrape_team_1_2(driver, temp_id, odds):
     for idx, standing_div in enumerate(standings_data):
         team_name_tag = standing_div.find("a", {"class": "tableCellParticipant__name"})
         team_name = team_name_tag.text.strip() if team_name_tag else "N/A"
-        print ("this is team_name ===================? ", team_name)
+        # print ("this is team_name ===================? ", team_name)
         form_icons = standing_div.find_all("div", {"class": "tableCellFormIcon _trigger_1dbpj_26"})
         form_icons_text = [icon.text.strip() for icon in form_icons[:2]]
-        print ("this is form_icons ============? " , form_icons, "===========" , form_icons_text)
+        # print ("this is form_icons ============? " , form_icons, "===========" , form_icons_text)
         value_spans = standing_div.find_all("span", {"class": "table__cell table__cell--value"})
         value_spans_text = [int(span.text.strip()) for span in value_spans[:1]]
-        print ("this is value_spans =============? ", value_spans)
+        # print ("this is value_spans =============? ", value_spans)
         if min_value_span is None:
             min_value_span = value_spans_text[0]
         else:
