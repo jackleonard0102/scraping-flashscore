@@ -26,11 +26,11 @@ def get_match_ids(driver):
     print('scraper is running please wait..\n')
     
     date_elem = driver.find_element(By.CLASS_NAME, 'calendar__datepicker')
-    date = date_elem.text           # chosen specific day
+    date = date_elem.text        
     print("\n\n**** Date : ", date, "  ****\n\n")
     
     
-    ## unroll all hidden games
+    # unroll all hidden games
     WebDriverWait(driver, 20)
     driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
     
@@ -50,16 +50,15 @@ def get_match_ids(driver):
                 driver.execute_script("window.scrollBy(0,100)","")
                 print(i, "...")
                               
-    ## get all match ids
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
-    matches_number = len(matches)   # the number of matches of specific day
+    matches_number = len(matches)   
     print("\n**** Total Matches Number : ", matches_number, "  ****\n")
     
     match_ids = []
     for match in matches:
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
         scores_list = soup_sc.find_all("div", {"class" : "event__score"})
-        if len(scores_list) > 0:
+        if len(scores_list)>0:
             try:
                 s = int(scores_list[0].text.strip())
             except:
@@ -74,8 +73,8 @@ def get_match_ids(driver):
     return date, match_ids
 
 
-def scrape_team_1_2(driver, temp_id):
-    url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/top_scorers"
+def scrape_team_1_2(driver, temp_id, odds):
+    url_overall = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/overall"
     driver.get(url_overall)
     time.sleep(3)
     
@@ -95,10 +94,9 @@ def scrape_team_1_2(driver, temp_id):
     game_time = soup_tm.find("div", {"class": "duelParticipant__startTime"}).text.split(" ")[-1]
     game_score = soup_tm.find("div", {"class": "detailScore__wrapper"}).text.strip()
     
-    scores_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
-    soup_score = BeautifulSoup(scores_div.get_attribute('innerHTML'), 'html.parser')
-    top_score_teams = soup_score.find_all("div", {"class": "ui-table__row topScorers__row topScorers__row--selected"})
-    
+    tm_name_h = tms[0].text.strip()
+    tm_name_a = tms[1].text.strip()
+
     if game_score != '-':
         print("\n### Skipped because the game is finished! ###")
         return None
@@ -107,30 +105,6 @@ def scrape_team_1_2(driver, temp_id):
         print("\n### Skipped because the round number is 5 or less! ###")
         return None
 
-    if len(top_score_teams) < 3:
-        print("\n### Skipped because there are less than 3 top scorers! ###")
-        return None
-
-    tm_name_h = tms[0].text.strip()
-    tm_name_a = tms[1].text.strip()
-    
-    team_info = []
-
-    for item in top_score_teams[:4]:
-        a_tags = item.find_all("a")
-        if len(a_tags) > 1:
-            score_team = a_tags[1].get_text(strip=True)
-            following_span = a_tags[1].find_next("span")
-            score = following_span.get_text(strip=True) if following_span else ""
-            team_number = 1 if score_team == tm_name_h else 2
-            team_info.append([score_team, team_number, score])
-
-    print(team_info)
-    
-    url_table = f"https://www.flashscore.com/match/{temp_id}/#/standings/table/overall"
-    driver.get(url_table)
-    time.sleep(3)
-    
     standings_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
     soup_standings = BeautifulSoup(standings_div.get_attribute('innerHTML'), 'html.parser')
     standings_data = soup_standings.find_all("div", {"class": "ui-table__row table__row--selected"})
@@ -167,19 +141,112 @@ def scrape_team_1_2(driver, temp_id):
             else:
                 form_icons_J_K = form_icons_text
     
-    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t',  form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2]]
+    if min_value_span < 5:
+        print(f"\n### Skipped because min_value_span ({min_value_span}) is less than 5! ###")
+        return None
+    
+    
+    # Switch to the standings table URL
+    url_table = f"https://www.flashscore.com/match/{temp_id}/#/standings/top_scorers"
+    driver.get(url_table)
+    time.sleep(3)
+    
+    scores_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
+    soup_score = BeautifulSoup(scores_div.get_attribute('innerHTML'), 'html.parser')
+    top_score_teams = soup_score.find_all("div", {"class": "ui-table__row topScorers__row topScorers__row--selected"})
+
+    if len(top_score_teams) < 3:
+        print("\n### Skipped because there are less than 3 top scorers! ###")
+        return None
+
+    tm_name_h = tms[0].text.strip()
+    tm_name_a = tms[1].text.strip()
+    
+    team_info = []
+
+    for item in top_score_teams[:4]:
+        a_tags = item.find_all("a")
+        if len(a_tags) > 1:
+            score_team = a_tags[1].get_text(strip=True)
+            following_span = a_tags[1].find_next("span")
+            score = following_span.get_text(strip=True) if following_span else ""
+            if (score_team == tm_name_h):
+                team_number = 1
+            else:
+                team_number = 2
+            team_info.append([score_team, team_number, score])
+
+    for _ in range(4 - len(team_info)):
+        team_info.append(['\t', '\t', '\t'])
+
+    print(team_info)
+
+    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t',  form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2], '\t', '\t', odds[0], odds[1], odds[2]]
     
     print(res)
     return res
 
 
+def get_odds_data_2():
+    odds_data = {}
+    browser_2 = webdriver.Chrome()
+    target_url = "https://www.betexplorer.com/next/soccer/"
+    browser_2.get(target_url)
+
+    WebDriverWait(browser_2, 10).until(
+        EC.presence_of_element_located((By.ID, 'nr-ko-all'))
+    )
+
+    process_key = input("Do you process from this odds portal page? y(yes)/Enter(no) ")
+    
+    if process_key.lower() == 'y':
+        print("Scrolling down the page...")
+        last_height = browser_2.execute_script("return document.body.scrollHeight")
+        
+        while True:
+            browser_2.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            new_height = browser_2.execute_script("return document.body.scrollHeight")
+            
+            if new_height == last_height:
+                time.sleep(2)
+                new_height = browser_2.execute_script("return document.body.scrollHeight")
+                
+                if new_height == last_height:
+                    break
+
+            last_height = new_height
+
+        print("Page fully scrolled.\n")
+        
+    browser_2.minimize_window()
+    print("\n\n*** Getting Odds Data from betexplorer.com....")
+
+    soup_tm = BeautifulSoup(browser_2.find_element(By.ID, 'nr-ko-all').get_attribute('innerHTML'), 'html.parser')
+    soup_tbody_list = soup_tm.find_all("ul", {"class": "table-main__matchInfo"})
+    print(len(soup_tbody_list))
+
+    for idx, item in enumerate(soup_tbody_list):
+        if 'data-def' in item.attrs:
+            td_name = item.find("li", {"class": "table-main__participants"})
+            match_id = td_name.find("a").get("href").rsplit('/', 2)[-2]
+            td_odds = item.find("div", {"class": "table-main__oddsLi"})
+            odds_data[match_id] = td_odds.text.strip().split("\n")
+            print(idx, match_id, odds_data[match_id])
+
+    browser_2.close()
+    return odds_data
+
+
 date, match_ids = get_match_ids(driver)
+odds_data = get_odds_data_2()
 data = []
 
 for idx, match_id in enumerate(match_ids, 1):
     print(f"\n{idx} / {len(match_ids)} : {match_id}")
     try:
-        res = scrape_team_1_2(driver, match_id)
+        odds = odds_data.get(match_id, ["\t", "\t", "\t"])
+        res = scrape_team_1_2(driver, match_id, odds)
         if res is not None:
             data.append(res)
     except Exception as e:
@@ -192,11 +259,19 @@ if data:
     output = output.style.set_properties(subset=[str(val+3) for val in range(len(data[0])-3)], **{'text-align': 'center'})
     
     date = date.replace("/", "_").replace(" ", "_")
-    output_file = f"{date}.xlsx"
-    with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-        output.to_excel(writer, index=False)
-    print(f"\n\nOutput saved as {output_file}")
+    output_file_name = f"soccer_{date}.xlsx"
+    
+    output.to_excel(output_file_name, index=False, header=False)
+    wb = openpyxl.load_workbook(output_file_name)
+    sheet = wb.active
+    sheet.column_dimensions['A'].width = 40
+    sheet.column_dimensions['B'].width = 25
+    sheet.column_dimensions['C'].width = 25
+    sheet.column_dimensions['D'].width = 10
+    wb.save(output_file_name)
+    
+    print(f"\n\n*** Successfully Created to {output_file_name} ***\n")
 else:
-    print("\n\nNo data to save.")
+    print("\n *** There is no result  \n")
 
-driver.quit()
+driver.close()
