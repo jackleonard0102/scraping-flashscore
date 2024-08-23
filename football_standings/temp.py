@@ -86,7 +86,7 @@ def scrape_team_1_2(driver, temp_id, odds):
         return None
     
     leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round")[0].strip()
-    round_number = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round ")[1].strip()
+    # round_number = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round ")[1].strip()
 
     teams_div = driver.find_element(By.CLASS_NAME, 'duelParticipant')
     soup_tm = BeautifulSoup(teams_div.get_attribute('innerHTML'), 'html.parser')
@@ -101,9 +101,9 @@ def scrape_team_1_2(driver, temp_id, odds):
         print("\n### Skipped because the game is finished! ###")
         return None
 
-    if int(round_number) <= 5:
-        print("\n### Skipped because the round number is 5 or less! ###")
-        return None
+    # if int(round_number) <= 5:
+    #     print("\n### Skipped because the round number is 5 or less! ###")
+    #     return None
 
     standings_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
     soup_standings = BeautifulSoup(standings_div.get_attribute('innerHTML'), 'html.parser')
@@ -250,7 +250,7 @@ for idx, match_id in enumerate(match_ids, 1):
         if res is not None:
             data.append(res)
     except Exception as e:
-        print("\tSkipped due to exception:", str(e))
+        print("\tSkipped due to exception: no standings in game list")
     
 print(len(data))
 if data:
