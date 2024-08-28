@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec 21 09:11:42 2021
-@author: k1332
-"""
-
 from selenium import webdriver
 import pandas as pd
 import time
@@ -12,42 +6,43 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import openpyxl
+from selenium.webdriver.chrome.options import Options
 
-# Initialize WebDriver
-driver = webdriver.Chrome()
+# Set Chrome options to disable the search engine choice screen
+chrome_options = Options()
+chrome_options.add_argument("--disable-search-engine-choice-screen")
+
+# Initialize WebDriver with the specified options
+driver = webdriver.Chrome(options=chrome_options)
 
 def get_match_ids(driver):
     search_url = "https://www.flashscore.com"
     driver.get(search_url)
-    time.sleep(1)
-    answer = input('are you ready to run scraper ?..Y/N>>')
-    if answer == "n" or answer == "N":
-        exit()
-    print('scraper is running please wait..\n')
+    input('Are you ready? Press Enter to run the scraper...')
+    print('Scraper is running, please wait...\n')
     
     date_elem = driver.find_element(By.CLASS_NAME, 'calendar__datepicker')
     date = date_elem.text        
     print("\n\n**** Date : ", date, "  ****\n\n")
     
-    
-    # unroll all hidden games
+    # Unroll all hidden games
     WebDriverWait(driver, 20)
     driver.find_element('xpath', '//*[@id="onetrust-accept-btn-handler"]').click()
     
     unroll_elements = WebDriverWait(driver, 20).until(
-    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='wcl-icon-action-navigation-arrow-down']")))
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, "[data-testid='wcl-icon-action-navigation-arrow-down']")))
 
-    print("unroll elements number --------> ",len(unroll_elements))
+    print("Unroll elements number --------> ", len(unroll_elements))
     i = 0
     for element in unroll_elements:
         while True:
             try:
                 element.click()
-                i  += 1
-                print('clicked : ', i)
+                i += 1
+                print('Clicked : ', i)
                 break
             except:
-                driver.execute_script("window.scrollBy(0,100)","")
+                driver.execute_script("window.scrollBy(0,100)", "")
                 print(i, "...")
                               
     matches = driver.find_elements(By.CLASS_NAME, 'event__match--twoLine')
@@ -58,7 +53,7 @@ def get_match_ids(driver):
     for match in matches:
         soup_sc = BeautifulSoup(match.get_attribute('innerHTML'), 'html.parser')
         scores_list = soup_sc.find_all("div", {"class" : "event__score"})
-        if len(scores_list)>0:
+        if len(scores_list) > 0:
             try:
                 s = int(scores_list[0].text.strip())
             except:
@@ -86,7 +81,6 @@ def scrape_team_1_2(driver, temp_id, odds):
         return None
     
     leg_name = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round")[0].strip()
-    # round_number = soup_leg.find("span", {"class": "tournamentHeader__country"}).text.split("- Round ")[1].strip()
 
     teams_div = driver.find_element(By.CLASS_NAME, 'duelParticipant')
     soup_tm = BeautifulSoup(teams_div.get_attribute('innerHTML'), 'html.parser')
@@ -101,14 +95,10 @@ def scrape_team_1_2(driver, temp_id, odds):
         print("\n### Skipped because the game is finished! ###")
         return None
 
-    # if int(round_number) <= 5:
-    #     print("\n### Skipped because the round number is 5 or less! ###")
-    #     return None
-
     standings_div = driver.find_element(By.ID, 'tournament-table-tabs-and-content')
     soup_standings = BeautifulSoup(standings_div.get_attribute('innerHTML'), 'html.parser')
     standings_data = soup_standings.find_all("div", {"class": "ui-table__row table__row--selected"})
-    # print ("this is standings_data ========? ", standings_data)
+    
     form_icons_G_H = ["", ""]
     form_icons_J_K = ["", ""]
     
@@ -117,13 +107,11 @@ def scrape_team_1_2(driver, temp_id, odds):
     for idx, standing_div in enumerate(standings_data):
         team_name_tag = standing_div.find("a", {"class": "tableCellParticipant__name"})
         team_name = team_name_tag.text.strip() if team_name_tag else "N/A"
-        # print ("this is team_name ===================? ", team_name)
         form_icons = standing_div.find_all("div", {"class": "tableCellFormIcon _trigger_1dbpj_26"})
         form_icons_text = [icon.text.strip() for icon in form_icons[:2]]
-        # print ("this is form_icons ============? " , form_icons, "===========" , form_icons_text)
         value_spans = standing_div.find_all("span", {"class": "table__cell table__cell--value"})
         value_spans_text = [int(span.text.strip()) for span in value_spans[:1]]
-        # print ("this is value_spans =============? ", value_spans)
+        
         if min_value_span is None:
             min_value_span = value_spans_text[0]
         else:
@@ -144,7 +132,6 @@ def scrape_team_1_2(driver, temp_id, odds):
     if min_value_span < 5:
         print(f"\n### Skipped because min_value_span ({min_value_span}) is less than 5! ###")
         return None
-    
     
     # Switch to the standings table URL
     url_table = f"https://www.flashscore.com/match/{temp_id}/#/standings/top_scorers"
@@ -181,7 +168,7 @@ def scrape_team_1_2(driver, temp_id, odds):
 
     print(team_info)
 
-    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t',  form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2], '\t', '\t', odds[0], odds[1], odds[2]]
+    res = [leg_name, tm_name_h, tm_name_a, game_time, '\t', '\t', min_value_span, '\t', form_icons_G_H[0], form_icons_G_H[1], '\t', form_icons_J_K[0], form_icons_J_K[1], '\t', team_info[0][1], team_info[0][2], '\t', team_info[1][1], team_info[1][2], '\t', team_info[2][1], team_info[2][2], '\t', team_info[3][1], team_info[3][2], '\t', '\t', odds[0], odds[1], odds[2]]
     
     print(res)
     return res
@@ -189,7 +176,7 @@ def scrape_team_1_2(driver, temp_id, odds):
 
 def get_odds_data_2():
     odds_data = {}
-    browser_2 = webdriver.Chrome()
+    browser_2 = webdriver.Chrome(options=chrome_options)
     target_url = "https://www.betexplorer.com/next/soccer/"
     browser_2.get(target_url)
 
@@ -197,28 +184,27 @@ def get_odds_data_2():
         EC.presence_of_element_located((By.ID, 'nr-ko-all'))
     )
 
-    process_key = input("Do you process from this odds portal page? y(yes)/Enter(no) ")
+    input("Are you ready? Press Enter to run the scraper...")
     
-    if process_key.lower() == 'y':
-        print("Scrolling down the page...")
-        last_height = browser_2.execute_script("return document.body.scrollHeight")
+    print("Scrolling down the page...")
+    last_height = browser_2.execute_script("return document.body.scrollHeight")
+    
+    while True:
+        browser_2.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+        new_height = browser_2.execute_script("return document.body.scrollHeight")
         
-        while True:
-            browser_2.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        if new_height == last_height:
             time.sleep(2)
             new_height = browser_2.execute_script("return document.body.scrollHeight")
             
             if new_height == last_height:
-                time.sleep(2)
-                new_height = browser_2.execute_script("return document.body.scrollHeight")
-                
-                if new_height == last_height:
-                    break
+                break
 
-            last_height = new_height
+        last_height = new_height
 
-        print("Page fully scrolled.\n")
-        
+    print("Page fully scrolled.\n")
+    
     browser_2.minimize_window()
     print("\n\n*** Getting Odds Data from betexplorer.com....")
 
@@ -250,7 +236,7 @@ for idx, match_id in enumerate(match_ids, 1):
         if res is not None:
             data.append(res)
     except Exception as e:
-        print("\tSkipped due to exception: no standings in game list", e)
+        print("\tSkipped due to exception:", str(e))
     
 print(len(data))
 if data:
