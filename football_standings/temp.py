@@ -118,7 +118,7 @@ def scrape_team_1_2(driver, temp_id, odds):
         team_name_tag = standing_div.find("a", {"class": "tableCellParticipant__name"})
         team_name = team_name_tag.text.strip() if team_name_tag else "N/A"
         # print ("this is team_name ===================? ", team_name)
-        form_icons = standing_div.find_all("div", {"class": "tableCellFormIcon _trigger_1dbpj_26"})
+        form_icons = standing_div.find_all("div", {"class": "ttableCellFormIcon _trigger_14u14_26"})
         form_icons_text = [icon.text.strip() for icon in form_icons[:2]]
         # print ("this is form_icons ============? " , form_icons, "===========" , form_icons_text)
         value_spans = standing_div.find_all("span", {"class": "table__cell table__cell--value"})

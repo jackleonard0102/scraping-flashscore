@@ -86,8 +86,8 @@ def get_match_results(driver):
                 row_id = match.get_attribute('id')[4:]
 
                 # Get team names
-                tm_name_h_elem = soup_sc.find("div", {"class": "_participant_j0qo9_4 event__homeParticipant"})
-                tm_name_a_elem = soup_sc.find("div", {"class": "_participant_j0qo9_4 event__awayParticipant"})
+                tm_name_h_elem = soup_sc.find("div", {"class": "_participant_45qbx_4 event__homeParticipant"})
+                tm_name_a_elem = soup_sc.find("div", {"class": "_participant_45qbx_4 event__awayParticipant"})
 
                 if tm_name_h_elem and tm_name_a_elem:
                     tm_name_h = tm_name_h_elem.text.strip().lower()
